@@ -1,6 +1,7 @@
 QwikSwitch-mqtt
 
 QwikSwitch USB modem to mqtt
+## Wallplate
 ```
 Number QS1  "QS1"      (Lights) {
         mqtt="
@@ -27,4 +28,15 @@ rule "qs1"
 end
 
 ```
+
+##Dimmer 
+
+Dimmer qsdimmer	"qs button"	   (Lights) {
+		mqtt="
+			>[mqtt_pidome:/QwikSwitch/1db110/level:command:*:default]], 
+			<[mqtt_pidome:/QwikSwitch/1db110/state:state:REGEX(.*?([0-9]+).*)]
+		"
+		}
+		
+		
 
