@@ -1,7 +1,7 @@
 QwikSwitch-mqtt
 
 QwikSwitch USB modem to mqtt
-
+```
 Number QS1  "QS1"      (Lights) {
         mqtt="
             >[mqtt_pidome:/QwikSwitch/1da123/state:command:*:default]], 
@@ -25,4 +25,6 @@ rule "qs1"
         }   
         sendCommand(TvLed, new_state)
 end
+
+```
 
