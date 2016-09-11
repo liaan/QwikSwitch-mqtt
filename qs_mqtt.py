@@ -22,6 +22,7 @@ softwareversion = '0.01'
 
 mqtt_host = "10.0.0.247"
 mqtt_port = 1883
+lastcounter = {}
 
 
 class QwickSwithMqtt:
@@ -48,15 +49,22 @@ class QwickSwithMqtt:
 		
 	def _on_message(self, client, userdata, msg):
 
-		
-		logger.debug('message! userdata: %s, message %s' % (userdata, msg.topic+" "+str(msg.payload)))
-		address = msg.topic.split('/')[-2]	
-		
-		## Way to hacky method, need get into struct or something
-		output = '0107'+address+'000607';		
-		output += "%02d" % ((int(msg.payload)*64)/100)		
-		logger.debug('Writing Message: %s' % output)
-		
+		try:
+			logger.debug('message! userdata: %s, message %s' % (userdata, msg.topic+" "+str(msg.payload)))
+			address = msg.topic.split('/')[-2]	
+			
+			## Way to hacky method, need get into struct or something
+			output = '0107'+address+'000607';		
+			if msg.payload == "ON" :
+				msg.payload = 100
+			
+			if msg.payload == "OFF":
+				msg.payload = 0
+			
+			output += "%02d" % ((int(msg.payload)*64)/100)		
+			logger.debug('Writing Message: %s' % output)
+		except:
+			return
 		
 		
 		try:
@@ -66,7 +74,8 @@ class QwickSwithMqtt:
 			print e
 
 	def _on_connect(self, client, userdata, flags, rc):
-
+		
+		
 		"""
 		RC definition:
 		0: Connection successful
@@ -84,16 +93,33 @@ class QwickSwithMqtt:
 		client.subscribe("/QwikSwitch/+/level")	
 
 	def _receive_qs_data(self,packet):
-		#holder
+	
+		global lastcounter
+		
+		#Decode packet
 		data = self._decode_qs_packet(packet);
-		logger.debug("data %s",data)
+		counter =  int(binascii.hexlify(data['counter']))
+		id =  binascii.hexlify(data['id'])
+		if id in lastcounter:
+			logger.debug("counte rin last counter=%s",lastcounter[id])
+			
+		else :
+			 lastcounter[id] = 0
+			
 		
-		self._publish(binascii.hexlify(data['id'])+'/command',binascii.hexlify(data['command']));
-		self._publish(binascii.hexlify(data['id'])+'/data',binascii.hexlify(data['data']));
-		self._publish(binascii.hexlify(data['id'])+'/data2',binascii.hexlify(data['data2']));
-		self._publish(binascii.hexlify(data['id'])+'/data3',binascii.hexlify(data['data3']));
-		self._publish(binascii.hexlify(data['id'])+'/counter',binascii.hexlify(data['counter']));
-		
+		if lastcounter[id] != counter:
+			lastcounter[id] = counter
+			logger.debug("Not Same, so lets publish")
+			
+			logger.debug("data %s",data)
+			
+			self._publish(binascii.hexlify(data['id'])+'/command',binascii.hexlify(data['command']));
+			self._publish(binascii.hexlify(data['id'])+'/data',binascii.hexlify(data['data']));
+			self._publish(binascii.hexlify(data['id'])+'/data2',binascii.hexlify(data['data2']));
+			self._publish(binascii.hexlify(data['id'])+'/data3',binascii.hexlify(data['data3']));
+			self._publish(binascii.hexlify(data['id'])+'/counter',binascii.hexlify(data['counter']));
+		else:
+			logger.debug("Counter same, so duplicate command, skipping")
 		
 		
 	def _publish(self,topic,value):
@@ -236,6 +262,7 @@ def main():
 
 	global mqtt_host
 	global mqtt_port
+	
 
 	# Argument parsing
 
