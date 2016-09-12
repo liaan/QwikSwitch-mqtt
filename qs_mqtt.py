@@ -104,7 +104,7 @@ class QwickSwithMqtt:
 		
 		#If not set yet, then set 
 		if id in lastcounter:
-			logger.debug("counte rin last counter=%s",lastcounter[id])
+			logger.debug("counter in last counter=%s", binascii.hexlify(lastcounter[id]))
 			
 		else :
 			 lastcounter[id] = 0
