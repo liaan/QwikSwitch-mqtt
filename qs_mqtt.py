@@ -99,7 +99,7 @@ class QwickSwithMqtt:
 		#Decode packet
 		data = self._decode_qs_packet(packet);
 		##Get counter and id
-		counter =  int(data['counter'])
+		counter =  data['counter']
 		id =  data['id']
 		
 		#If not set yet, then set 
