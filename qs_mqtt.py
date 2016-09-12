@@ -93,13 +93,16 @@ class QwickSwithMqtt:
 		client.subscribe("/QwikSwitch/+/level")	
 
 	def _receive_qs_data(self,packet):
-	
+		##Get global var
 		global lastcounter
 		
 		#Decode packet
 		data = self._decode_qs_packet(packet);
-		counter =  int(binascii.hexlify(data['counter']))
-		id =  binascii.hexlify(data['id'])
+		##Get counter and id
+		counter =  int(data['counter'])
+		id =  data['id']
+		
+		#If not set yet, then set 
 		if id in lastcounter:
 			logger.debug("counte rin last counter=%s",lastcounter[id])
 			
@@ -113,6 +116,7 @@ class QwickSwithMqtt:
 			
 			logger.debug("data %s",data)
 			
+			##Publish all with Hex values to try keep with QS methology
 			self._publish(binascii.hexlify(data['id'])+'/command',binascii.hexlify(data['command']));
 			self._publish(binascii.hexlify(data['id'])+'/data',binascii.hexlify(data['data']));
 			self._publish(binascii.hexlify(data['id'])+'/data2',binascii.hexlify(data['data2']));
@@ -179,16 +183,18 @@ class QwickSwithMqtt:
 		data = {};
 		
 		logger.debug("Hex %s" ,binascii.hexlify(packet))
-		data['unkown1'] = packet[0:1]
-		data['unkown2']  = packet[1:2]
-		data['id'] = packet[2:5]
-		data['unkown3'] = packet[5:6]
-		data['counter'] = packet[6:7]
-		data['command']= packet[7:8]		
-		data['data'] = packet[8:9]
-		data['data2'] = packet[9:10]
-		data['data3'] = packet[10:11]
-		data['data4'] = packet[11:15]
+		#print packet[2:5].tostring()
+		
+		data['unkown1'] = packet[0:1].tostring()
+		data['unkown2']  = packet[1:2].tostring()
+		data['id'] = packet[2:5].tostring()
+		data['unkown3'] = packet[5:6].tostring()
+		data['counter'] = packet[6:7].tostring()
+		data['command']= packet[7:8].tostring()	
+		data['data'] = packet[8:9].tostring()
+		data['data2'] = packet[9:10].tostring()
+		data['data3'] = packet[10:11].tostring()
+		data['data4'] = packet[11:15].tostring()
 		
 		
 		
@@ -244,7 +250,7 @@ class QwickSwithMqtt:
 
 		while True:
 			try:
-				data = self.qwickswitch_dev.read(self.qs_endpoint.bEndpointAddress,self.qs_endpoint.wMaxPacketSize,0,50)
+				data = self.qwickswitch_dev.read(self.qs_endpoint.bEndpointAddress,self.qs_endpoint.wMaxPacketSize,0,500)
 				collected += 1
 				self._receive_qs_data(data);
 				data = None
