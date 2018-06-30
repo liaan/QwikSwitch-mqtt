@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import os
+import commands
 import usb.core
 import usb.util
 import sys
@@ -220,6 +221,7 @@ class QwickSwithMqtt:
 		return data
 	
 	def _init_usb(self):
+
 		#next line sets Vendor/Product id, these values have to be set also in PIC-side
 		#You can check the set values in linux using command "lsusb". This shows ID VendorId:ProductId
 		self.qwickswitch_dev = usb.core.find(idVendor=0x04d8, idProduct=0x2005)
@@ -250,7 +252,7 @@ class QwickSwithMqtt:
 
 		while True:
 			try:
-				data = self.qwickswitch_dev.read(self.qs_endpoint.bEndpointAddress,self.qs_endpoint.wMaxPacketSize,0,500)
+				data = self.qwickswitch_dev.read(self.qs_endpoint.bEndpointAddress,self.qs_endpoint.wMaxPacketSize,500)
 				collected += 1
 				self._receive_qs_data(data);
 				data = None
@@ -263,12 +265,19 @@ class QwickSwithMqtt:
 				data = None
 				continue
 
+def stop_if_already_running():
+	script_name = os.path.basename(__file__)
+	l = commands.getstatusoutput("ps aux | grep -e '%s' | grep -v grep | awk '{print $2}'| awk '{print $2}'" % script_name)
+	if l[1]:
+		sys.exit(0);
+
 
 def main():
 
 	global mqtt_host
 	global mqtt_port
 	
+	stop_if_already_running();
 
 	# Argument parsing
 
