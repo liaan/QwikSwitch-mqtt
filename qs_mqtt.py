@@ -237,7 +237,7 @@ class QwickSwithMqtt:
 		
 		interface = 0
 		self.qs_endpoint = self.qwickswitch_dev[0][(0,0)][0]
-		print "Device Found"
+		logger.debug("Device Found");
 		try:
 			self.qwickswitch_dev.write(1,binascii.unhexlify('01071DB11000070764'))
 		except usb.core.USBError as e:
@@ -246,7 +246,7 @@ class QwickSwithMqtt:
 		
 		
 	def _start_usb_listen(self):		
-		print "starting to listen";
+		logger.debug( "starting to listen");
 		collected = 0
 		attempts = 50
 
@@ -309,14 +309,14 @@ def main():
 		mqtt_port = args.port		    		
 		logger.debug("Port: %s"%mqtt_port)	
 
-	logger.info("%s v%s is starting up" % (__file__, softwareversion))
+	logger.debug("%s v%s is starting up" % (__file__, softwareversion))
 	logLevel = {0: 'NOTSET', 10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40: 'ERROR'}
-	logger.info('Loglevel set to ' + logLevel[logging.getLogger().getEffectiveLevel()])
+	logger.debug('Loglevel set to ' + logLevel[logging.getLogger().getEffectiveLevel()])
 
 
 	# Start and run the mainloop
 
-	logger.info("Starting mainloop, responding on only events")
+	logger.debug("Starting mainloop, responding on only events")
 	qs = QwickSwithMqtt()
 
 	
