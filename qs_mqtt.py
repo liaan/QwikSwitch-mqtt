@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 import time
 
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), './ext/paho-mqtt-client'))
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), './ext/paho-mqtt-clie                                                                                                                               nt'))
 import client as mqtt
 softwareversion = '0.01'
 
@@ -31,15 +31,15 @@ class QwickSwithMqtt:
         def __init__(self):
 
 
-                self._mqtt = mqtt.Client(client_id="abc", clean_session=True, userdata=None)
+                self._mqtt = mqtt.Client(client_id="abc", clean_session=True, us                                                                                                                               erdata=None)
 
-                self._mqtt.loop_start()  # creates new thread and runs Mqtt.loop_forever() in it.
+                self._mqtt.loop_start()  # creates new thread and runs Mqtt.loop                                                                                                                               _forever() in it.
 
                 self._mqtt.on_connect = self._on_connect
                 self._mqtt.on_message = self._on_message
 
                 logger.debug('Connecting to host')
-                self._mqtt.connect_async(mqtt_host, port=mqtt_port, keepalive=60, bind_address="")
+                self._mqtt.connect_async(mqtt_host, port=mqtt_port, keepalive=60                                                                                                                               , bind_address="")
                 logger.debug('our client id (and also topic) is %s' % "abc")
 
                 self._init_usb();
@@ -51,17 +51,18 @@ class QwickSwithMqtt:
         def _on_message(self, client, userdata, msg):
 
                 try:
-                        logger.debug('message! userdata: %s, message %s' % (userdata, msg.topic+" "+str(msg.payload)))
+                        logger.debug('message! userdata: %s, message %s' % (user                                                                                                                               data, msg.topic+" "+str(msg.payload)))
                         address = msg.topic.split('/')[-2]
 
-                        ## Way to hacky method, need get into struct or something
+                        ## Way to hacky method, need get into struct or somethin                                                                                                                               g
                         output = '0107'+address+'000607';
                         if msg.payload == "ON" :
                                 msg.payload = 100
 
                         if msg.payload == "OFF":
                                 msg.payload = 0
-                        logger.debug("sending value %s" ,"%02d" % ((int(msg.payload)*64)/100))
+                        logger.debug("sending value %s" ,"%02d" % ((int(msg.payl                                                                                                                               oad)*64)/100))
+                        ##Make it into hex from 100 .. get converted back when g                                                                                                                               ets send from hex to int .. prob better way todo it.
                         output += "%02d" % ((int(msg.payload)*64)/100)
                         #output += "%02d" % int(msg.payload)
 
@@ -90,8 +91,8 @@ class QwickSwithMqtt:
                 6-255: Currently unused.
                 """
 
-                logger.debug('connected! client=%s, userdata=%s, flags=%s, rc=%s' % (client, userdata, flags, rc))
-                # Subscribing in on_connect() means that if we lose the connection and
+                logger.debug('connected! client=%s, userdata=%s, flags=%s, rc=%s                                                                                                                               ' % (client, userdata, flags, rc))
+                # Subscribing in on_connect() means that if we lose the connecti                                                                                                                               on and
                 # reconnect then subscriptions will be renewed.
                 client.subscribe("QwikSwitch/+/set")
 
@@ -107,7 +108,7 @@ class QwickSwithMqtt:
 
                 #If not set yet, then set
                 if id in lastcounter:
-                        logger.debug("counter in last counter=%s", binascii.hexlify(lastcounter[id]))
+                        logger.debug("counter in last counter=%s", binascii.hexl                                                                                                                               ify(lastcounter[id]))
 
                 else :
                          lastcounter[id] = 0
@@ -119,40 +120,40 @@ class QwickSwithMqtt:
 
                         logger.debug("data %s",data)
 
-                        ##Publish all with Hex values to try keep with QS methology
-                        #self._publish(binascii.hexlify(data['id'])+'/command',binascii.hexlify(data['command']));
+                        ##Publish all with Hex values to try keep with QS methol                                                                                                                               ogy
+                        #self._publish(binascii.hexlify(data['id'])+'/command',b                                                                                                                               inascii.hexlify(data['command']));
 
                         ## Pusblish actual value so can see
-                        self._publish(binascii.hexlify(data['id'])+'/value',data['value']);
+                        self._publish(binascii.hexlify(data['id'])+'/value',data                                                                                                                               ['value']);
 
-                        #self._publish(binascii.hexlify(data['id'])+'/data',binascii.hexlify(data['data']));
-                        #self._publish(binascii.hexlify(data['id'])+'/type',binascii.hexlify(data['type']));
-                        #self._publish(binascii.hexlify(data['id'])+'/data3',binascii.hexlify(data['data3']));
-                        #self._publish(binascii.hexlify(data['id'])+'/data4',binascii.hexlify(data['data4']));
-                        #self._publish(binascii.hexlify(data['id'])+'/counter',binascii.hexlify(data['counter']));
+                        #self._publish(binascii.hexlify(data['id'])+'/data',bina                                                                                                                               scii.hexlify(data['data']));
+                        #self._publish(binascii.hexlify(data['id'])+'/type',bina                                                                                                                               scii.hexlify(data['type']));
+                        #self._publish(binascii.hexlify(data['id'])+'/data3',bin                                                                                                                               ascii.hexlify(data['data3']));
+                        #self._publish(binascii.hexlify(data['id'])+'/data4',bin                                                                                                                               ascii.hexlify(data['data4']));
+                        #self._publish(binascii.hexlify(data['id'])+'/counter',b                                                                                                                               inascii.hexlify(data['counter']));
 
                 else:
-                        logger.debug("Counter same, so duplicate command, skipping")
+                        logger.debug("Counter same, so duplicate command, skippi                                                                                                                               ng")
 
 
         def _publish(self,topic,value):
 
                 topic = 'QwikSwitch/' + topic
                 payload = value
-                logger.debug('publishing on topic "%s", data "%s"' % (topic, payload))
+                logger.debug('publishing on topic "%s", data "%s"' % (topic, pay                                                                                                                               load))
 
                 self._mqtt.publish(topic, payload=payload, qos=0, retain=False)
 
         def _decode_qs_packet(self,packet):
 
-                #DEBUG:__main__:data {'counter': array('B', [68]), 'unkown3': array('B', [0]), 'unkown2': array('B', [11]), 'unkown1': array('B', [1]), 'command': array('B', [130]), 'data': array('B', [129]), 'id': array('B', [29, 177, 16])}
+                #DEBUG:__main__:data {'counter': array('B', [68]), 'unkown3': ar                                                                                                                               ray('B', [0]), 'unkown2': array('B', [11]), 'unkown1': array('B', [1]), 'command                                                                                                                               ': array('B', [130]), 'data': array('B', [129]), 'id': array('B', [29, 177, 16])                                                                                                                               }
                 ##Off
-                #DEBUG:__main__:data {'counter': array('B', [65]), 'unkown3': array('B', [0]), 'unkown2': array('B', [11]), 'unkown1': array('B', [1]), 'command': array('B', [130]), 'data4': array('B', [58, 131, 0, 0]), 'data': array('B', [129]), 'id': array('B', [29, 177, 16]), 'data3': array('B', [125]), 'data2': array('B', [51])}
+                #DEBUG:__main__:data {'counter': array('B', [65]), 'unkown3': ar                                                                                                                               ray('B', [0]), 'unkown2': array('B', [11]), 'unkown1': array('B', [1]), 'command                                                                                                                               ': array('B', [130]), 'data4': array('B', [58, 131, 0, 0]), 'data': array('B', [                                                                                                                               129]), 'id': array('B', [29, 177, 16]), 'data3': array('B', [125]), 'data2': arr                                                                                                                               ay('B', [51])}
                 ##On
-                #DEBUG:__main__:data {'counter': array('B', [66]), 'unkown3': array('B', [0]), 'unkown2': array('B', [11]), 'unkown1': array('B', [1]), 'command': array('B', [130]), 'data4': array('B', [59, 132, 0, 0]), 'data': array('B', [129]), 'id': array('B', [29, 177, 16]), 'data3': array('B', [30]), 'data2': array('B', [51])}
+                #DEBUG:__main__:data {'counter': array('B', [66]), 'unkown3': ar                                                                                                                               ray('B', [0]), 'unkown2': array('B', [11]), 'unkown1': array('B', [1]), 'command                                                                                                                               ': array('B', [130]), 'data4': array('B', [59, 132, 0, 0]), 'data': array('B', [                                                                                                                               129]), 'id': array('B', [29, 177, 16]), 'data3': array('B', [30]), 'data2': arra                                                                                                                               y('B', [51])}
 
                 ##Off
-                #DEBUG:__main__:data {'counter': array('B', [67]), 'unkown3': array('B', [0]), 'unkown2': array('B', [11]), 'unkown1': array('B', [1]), 'command': array('B', [130]), 'data4': array('B', [59, 131, 0, 0]), 'data': array('B', [129]), 'id': array('B', [29, 177, 16]), 'data3': array('B', [125]), 'data2': array('B', [51])}
+                #DEBUG:__main__:data {'counter': array('B', [67]), 'unkown3': ar                                                                                                                               ray('B', [0]), 'unkown2': array('B', [11]), 'unkown1': array('B', [1]), 'command                                                                                                                               ': array('B', [130]), 'data4': array('B', [59, 131, 0, 0]), 'data': array('B', [                                                                                                                               129]), 'id': array('B', [29, 177, 16]), 'data3': array('B', [125]), 'data2': arr                                                                                                                               ay('B', [51])}
 
 
 
@@ -164,7 +165,7 @@ class QwickSwithMqtt:
                 #@1da124.00.01.06.00.53 -- Pres RElease
                 #01:09 :1d:a1:24: 00 : 05:06:00: 52:86:  3b:84
 
-                # {"id":"@1db110","cmd":"STATUS.ACK","data":"0%,RX1DIM,V51","rssi":"75%"}
+                # {"id":"@1db110","cmd":"STATUS.ACK","data":"0%,RX1DIM,V51","rss                                                                                                                               i":"75%"}
                 # @1db110.00.42.82.81337d.3b
 
                 ##Commands
@@ -211,7 +212,7 @@ class QwickSwithMqtt:
                 "f":"1111",
                 }
                 hex_num=binascii.hexlify(packet)
-                logger.debug("Binary %s",  " ".join(hex2bin_map[i] for i in hex_num))
+                logger.debug("Binary %s",  " ".join(hex2bin_map[i] for i in hex_                                                                                                                               num))
 
                 logger.debug("Hex %s" ,binascii.hexlify(packet))
                 #print packet[2:5].tostring()
@@ -227,15 +228,22 @@ class QwickSwithMqtt:
 
                 data['data3'] = packet[10:11].tostring()
                 data['data4'] = packet[11:15].tostring()
-                ## Value is first 7 bytes of packet 11, so shift one over to make normal value
+                ## Value is first 7 bytes of packet 11, so shift one over to mak                                                                                                                               e normal value
                 value =  (ord(packet[10:11].tostring())>>1)
                 logger.debug("Value before %s" , value)
 
                 if  ord(data['type']) == 51:
-                        data['value'] = ((64-value)*100/64)
+                        if value >= 61:
+                                logger.debug("value below 4 so off")
+                                data['value'] = 0
+                        else:
+                                logger.debug("value on")
+                                data['value'] = ((64-value)*100/64)
                 else:
-                        data['value'] = (value*100/64)
-
+                        if value == 64:
+                                data['value'] = "ON"
+                        else:
+                                data['value'] = "OFF"
 
 
 
@@ -250,8 +258,8 @@ class QwickSwithMqtt:
                 logger.debug( "Data %s" , binascii.hexlify(data['data']))
 
 
-                #self.qwickswitch_dev.write(1,binascii.unhexlify('01071DB11000060700'))
-                #self.qwickswitch_dev.write(1,binascii.unhexlify('01071DB11000060715'))
+                #self.qwickswitch_dev.write(1,binascii.unhexlify('01071DB1100006                                                                                                                               0700'))
+                #self.qwickswitch_dev.write(1,binascii.unhexlify('01071DB1100006                                                                                                                               0715'))
 
 
 
@@ -266,14 +274,14 @@ class QwickSwithMqtt:
 
         def _init_usb(self):
 
-                #next line sets Vendor/Product id, these values have to be set also in PIC-side
-                #You can check the set values in linux using command "lsusb". This shows ID VendorId:ProductId
-                self.qwickswitch_dev = usb.core.find(idVendor=0x04d8, idProduct=0x2005)
+                #next line sets Vendor/Product id, these values have to be set a                                                                                                                               lso in PIC-side
+                #You can check the set values in linux using command "lsusb". Th                                                                                                                               is shows ID VendorId:ProductId
+                self.qwickswitch_dev = usb.core.find(idVendor=0x04d8, idProduct=                                                                                                                               0x2005)
 
                 if self.qwickswitch_dev is None:
                         raise ValueError('Device not found')
 
-                #When you connect the device to linux. Linux automatically sets some drivers to it. In order to this script to work
+                #When you connect the device to linux. Linux automatically sets                                                                                                                                some drivers to it. In order to this script to work
                 #we must first detach the driver
                 if self.qwickswitch_dev.is_kernel_driver_active(0) is True:
                         print "Detaching device"
@@ -283,7 +291,7 @@ class QwickSwithMqtt:
                 self.qs_endpoint = self.qwickswitch_dev[0][(0,0)][0]
                 logger.debug("Device Found");
                 try:
-                        self.qwickswitch_dev.write(1,binascii.unhexlify('01071DB11000070764'))
+                        self.qwickswitch_dev.write(1,binascii.unhexlify('01071DB                                                                                                                               11000070764'))
                 except usb.core.USBError as e:
                         ##aaasdf
                         print e
@@ -296,7 +304,7 @@ class QwickSwithMqtt:
 
                 while True:
                         try:
-                                data = self.qwickswitch_dev.read(self.qs_endpoint.bEndpointAddress,self.qs_endpoint.wMaxPacketSize,500)
+                                data = self.qwickswitch_dev.read(self.qs_endpoin                                                                                                                               t.bEndpointAddress,self.qs_endpoint.wMaxPacketSize,500)
                                 collected += 1
                                 self._receive_qs_data(data);
                                 data = None
@@ -311,7 +319,7 @@ class QwickSwithMqtt:
 
 def stop_if_already_running():
         script_name = os.path.basename(__file__)
-        l = commands.getstatusoutput("ps aux | grep -e '%s' | grep -v grep | awk '{print $2}'| awk '{print $2}'" % script_name)
+        l = commands.getstatusoutput("ps aux | grep -e '%s' | grep -v grep | awk                                                                                                                                '{print $2}'| awk '{print $2}'" % script_name)
         if l[1]:
                 sys.exit(0);
 
@@ -327,15 +335,15 @@ def main():
 
         parser = argparse.ArgumentParser(
 
-                description='Qwickswitch v%s: Mqtt publisher of QwickSwith on the Pi.' % softwareversion
+                description='Qwickswitch v%s: Mqtt publisher of QwickSwith on th                                                                                                                               e Pi.' % softwareversion
 
         )
 
         parser.add_argument("-d", "--debug", help="set logging level to debug",
                                                 action="store_true")
 
-        parser.add_argument("-s", "--server", help='Mqtt Server, Default: %s ' % mqtt_host)
-        parser.add_argument("-p", "--port", help="Mqtt Port, Default:  %s" % mqtt_port)
+        parser.add_argument("-s", "--server", help='Mqtt Server, Default: %s ' %                                                                                                                                mqtt_host)
+        parser.add_argument("-p", "--port", help="Mqtt Port, Default:  %s" % mqt                                                                                                                               t_port)
 
 
         args = parser.parse_args()
@@ -343,7 +351,7 @@ def main():
 
 
         # Init logging
-        logging.basicConfig(level=(logging.DEBUG if args.debug else logging.INFO))
+        logging.basicConfig(level=(logging.DEBUG if args.debug else logging.INFO                                                                                                                               ))
 
         if args.server:
                 mqtt_host = args.server
@@ -354,8 +362,8 @@ def main():
                 logger.debug("Port: %s"%mqtt_port)
 
         logger.debug("%s v%s is starting up" % (__file__, softwareversion))
-        logLevel = {0: 'NOTSET', 10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40: 'ERROR'}
-        logger.debug('Loglevel set to ' + logLevel[logging.getLogger().getEffectiveLevel()])
+        logLevel = {0: 'NOTSET', 10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40: 'ER                                                                                                                               ROR'}
+        logger.debug('Loglevel set to ' + logLevel[logging.getLogger().getEffect                                                                                                                               iveLevel()])
 
 
         # Start and run the mainloop
@@ -385,3 +393,4 @@ def main():
 if __name__ == "__main__":
 
         main()
+
